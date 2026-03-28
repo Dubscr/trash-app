@@ -87,7 +87,7 @@ def main():
     reports = database.get_all_reports()
     print(database.get_daily_images(get_current_unix_time()))
     # Simulate uploading a report
-    test_upload()
+    # test_upload()
 
     if not reports:
         print("No reports found.")
