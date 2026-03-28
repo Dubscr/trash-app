@@ -3,8 +3,10 @@ import time
 import datetime
 import database
 import imagehandler
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 
 def get_current_unix_time():
