@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 import database
 import imagehandler
 import os
-
+from datetime import datetime
 app = Flask(__name__)
 
 ## API Calls ##
@@ -20,31 +20,15 @@ def add_report():
     t_type = data.get("trash_type")
     loc = data.get("location")
 
-    database.add_report(username, img, t_type, loc)
+    dt = datetime.now("America/New_York")
+    unix_timestamp = dt.timestamp()
+    database.add_report(username, img, t_type, loc, unix_timestamp)
 
     return jsonify({"message": "Report added successfully"})
-
-@app.route("/reports/<int:report_id>", methods=["DELETE"])
-def delete_report(report_id):
-    success = database.delete_report(report_id)
-
-    if success:
-        return jsonify({"message": "Deleted"})
-    else:
-        return jsonify({"error": "Report not found"}), 404
 
 @app.route("/reports/user/<username>", methods=["GET"])
 def reports_by_user(username):
     return jsonify(database.get_reports_by_user(username))
-
-@app.route("/reports/type/<trash_type>", methods=["GET"])
-def reports_by_type(trash_type):
-    return jsonify(database.get_reports_by_type(trash_type))
-
-@app.route("/reports/location/<location>", methods=["GET"])
-def reports_by_location(location):
-    return jsonify(database.get_reports_by_location(location))
-
 
 ## Functions ##
 def test_upload():
