@@ -1,70 +1,88 @@
+import os
 import sqlite3
+import time
 
-DB_NAME = 'trash_app.db'
+DB_NAME = os.path.join(os.path.dirname(os.path.abspath(__file__)), "trash_app.db")
+
 
 def initialize_db():
     """Creates the table if it doesn't exist."""
     with sqlite3.connect(DB_NAME) as conn:
         cursor = conn.cursor()
-        cursor.execute('''
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS trash_reports (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT NOT NULL,
                 image_path TEXT,
                 trash_type TEXT,
-                location TEXT
+                latitude REAL NOT NULL,
+                longitude REAL NOT NULL,
+                reported_at INTEGER NOT NULL
             )
-        ''')
+            """
+        )
         conn.commit()
 
-def add_report(username, img, t_type, loc):
+
+def add_report(username, img, t_type, latitude, longitude):
     """Inserts a new row into the database."""
     with sqlite3.connect(DB_NAME) as conn:
         cursor = conn.cursor()
-        query = "INSERT INTO trash_reports (username, image_path, trash_type, location) VALUES (?, ?, ?, ?)"
-        cursor.execute(query, (username, img, t_type, loc))
+        reported_at = int(time.time())
+        query = """
+            INSERT INTO trash_reports
+            (username, image_path, trash_type, latitude, longitude, reported_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """
+        cursor.execute(query, (username, img, t_type, latitude, longitude, reported_at))
         conn.commit()
+
 
 def delete_report(report_id):
     """Deletes a single report by its ID."""
     with sqlite3.connect(DB_NAME) as conn:
         cursor = conn.cursor()
-        # SQL command to remove a specific row
         query = "DELETE FROM trash_reports WHERE id = ?"
         cursor.execute(query, (report_id,))
         conn.commit()
-        # rowcount tells us if anything actually got deleted
-        return cursor.rowcount > 0 
+        return cursor.rowcount > 0
+
 
 def get_all_reports():
     """Returns a list of all rows in the table."""
     with sqlite3.connect(DB_NAME) as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM trash_reports")
-        # fetchall() retrieves all results as a list of tuples
+        cursor.execute(
+            """
+            SELECT id, username, image_path, trash_type, latitude, longitude, reported_at
+            FROM trash_reports
+            """
+        )
         return cursor.fetchall()
-    
+
+
 def get_reports_by_user(username):
     """Returns all reports for a specific username."""
     with sqlite3.connect(DB_NAME) as conn:
         cursor = conn.cursor()
-        # Use '?' as a placeholder and pass the username in a tuple
-        query = "SELECT * FROM trash_reports WHERE username = ?"
+        query = """
+            SELECT id, username, image_path, trash_type, latitude, longitude, reported_at
+            FROM trash_reports
+            WHERE username = ?
+        """
         cursor.execute(query, (username,))
         return cursor.fetchall()
-    
+
+
 def get_reports_by_type(trash_type):
     """Returns all reports matching a specific trash type (e.g., 'Plastic')."""
     with sqlite3.connect(DB_NAME) as conn:
         cursor = conn.cursor()
-        query = "SELECT * FROM trash_reports WHERE trash_type = ?"
+        query = """
+            SELECT id, username, image_path, trash_type, latitude, longitude, reported_at
+            FROM trash_reports
+            WHERE trash_type = ?
+        """
         cursor.execute(query, (trash_type,))
-        return cursor.fetchall()
-
-def get_reports_by_location(location):
-    """Returns all reports matching a specific location string."""
-    with sqlite3.connect(DB_NAME) as conn:
-        cursor = conn.cursor()
-        query = "SELECT * FROM trash_reports WHERE location = ?"
-        cursor.execute(query, (location,))
         return cursor.fetchall()
