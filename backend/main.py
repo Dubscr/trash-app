@@ -58,7 +58,7 @@ def reports_by_user(username):
 def reports_by_type(trash_type):
     return jsonify(database.get_reports_by_type(trash_type))
 
-@app.route("/reports/daily", methods="GET")
+@app.route("/reports/daily", methods=["GET"])
 def daily_reports():
     return jsonify(database.get_daily_images())
 
