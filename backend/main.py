@@ -62,7 +62,11 @@ def reports_by_type(trash_type):
 
 @app.route("/reports/daily", methods=["GET"])
 def daily_reports():
-    return jsonify(database.get_daily_images())
+    return jsonify(database.get_daily_images(get_current_unix_time()))
+
+@app.route("/reports/leaderboard", methods=["GET"])
+def get_leaderboard():
+    return jsonify(database.get_leaderboard())
 
 ## Functions ##
 def test_upload():
@@ -87,7 +91,6 @@ def test_upload():
 def main():
     database.initialize_db()
     reports = database.get_all_reports()
-    print(database.get_daily_images(get_current_unix_time()))
     # Simulate uploading a report
     # test_upload()
 
