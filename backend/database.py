@@ -84,3 +84,10 @@ def get_reports_by_type(trash_type):
         """
         cursor.execute(query, (trash_type,))
         return cursor.fetchall()
+
+def get_daily_images(current_time):
+    daily_report_list = []
+    for report in get_all_reports():
+        if(report[6] >= current_time - 86400):
+            daily_report_list.append(report)
+    return daily_report_list

@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request
 import time
-
+import datetime
 import database
 import imagehandler
 
@@ -58,6 +58,9 @@ def reports_by_user(username):
 def reports_by_type(trash_type):
     return jsonify(database.get_reports_by_type(trash_type))
 
+@app.route("/reports/daily", methods="GET")
+def daily_reports():
+    return jsonify(database.get_daily_images())
 
 ## Functions ##
 def test_upload():
@@ -82,9 +85,9 @@ def test_upload():
 def main():
     database.initialize_db()
     reports = database.get_all_reports()
-
+    print(database.get_daily_images(get_current_unix_time()))
     # Simulate uploading a report
-    # test_upload()
+    test_upload()
 
     if not reports:
         print("No reports found.")
