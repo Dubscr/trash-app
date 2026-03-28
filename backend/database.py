@@ -1,6 +1,5 @@
 import os
 import sqlite3
-import time
 
 DB_NAME = os.path.join(os.path.dirname(os.path.abspath(__file__)), "trash_app.db")
 
@@ -25,11 +24,10 @@ def initialize_db():
         conn.commit()
 
 
-def add_report(username, img, t_type, latitude, longitude):
+def add_report(username, img, t_type, latitude, longitude, reported_at):
     """Inserts a new row into the database."""
     with sqlite3.connect(DB_NAME) as conn:
         cursor = conn.cursor()
-        reported_at = int(time.time())
         query = """
             INSERT INTO trash_reports
             (username, image_path, trash_type, latitude, longitude, reported_at)

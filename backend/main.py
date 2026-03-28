@@ -1,9 +1,14 @@
 from flask import Flask, jsonify, request
+import time
 
 import database
 import imagehandler
 
 app = Flask(__name__)
+
+
+def get_current_unix_time():
+    return int(time.time())
 
 
 ## API Calls ##
@@ -29,9 +34,10 @@ def add_report():
     except (TypeError, ValueError):
         return jsonify({"error": "latitude and longitude must be numbers"}), 400
 
-    database.add_report(username, img, t_type, latitude, longitude)
+    reported_at = get_current_unix_time()
+    database.add_report(username, img, t_type, latitude, longitude, reported_at)
 
-    return jsonify({"message": "Report added successfully"})
+    return jsonify({"message": "Report added successfully", "reported_at": reported_at})
 
 
 @app.route("/reports/<int:report_id>", methods=["DELETE"])
@@ -66,8 +72,9 @@ def test_upload():
     trash = input("Trash Type (Plastic/Metal/etc): ")
     latitude = float(input("Latitude: "))
     longitude = float(input("Longitude: "))
+    reported_at = get_current_unix_time()
 
-    database.add_report(user, saved_image_path, trash, latitude, longitude)
+    database.add_report(user, saved_image_path, trash, latitude, longitude, reported_at)
 
     print(f"Success! Report saved for {user}.")
 
