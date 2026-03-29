@@ -91,3 +91,16 @@ def get_daily_images(current_time):
         if(report[6] >= current_time - 86400):
             daily_report_list.append(report)
     return daily_report_list
+
+def get_leaderboard():
+    all_reports = get_all_reports()
+    score_dict = {}
+    for report in all_reports:
+        if(score_dict.get(report[1])):
+            score_dict[report[1]] += 1
+        else:
+            score_dict[report[1]] = 1
+    for user, score in score_dict.items():
+        print(user, score)
+    sorted_dict = dict(sorted(score_dict.items(), key=lambda item: item[1]))
+    return sorted_dict
