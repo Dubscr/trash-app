@@ -7,8 +7,9 @@ export function Header() {
   const navItems = [
     { path: "/", label: "Home" },
     { path: "/upload", label: "Upload" },
-    { path: "/user", label: "User Page" },
+    { path: "/user", label: "My Trash" },
     { path: "/about", label: "About" },
+    { path: "/all-users", label: "All Trash" },
   ];
 
   return (

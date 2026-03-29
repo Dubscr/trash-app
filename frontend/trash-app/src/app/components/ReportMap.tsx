@@ -50,7 +50,7 @@ export function ReportMap({ reports, isLoading = false }: ReportMapProps) {
       <MapContainer
         key={`${center[0]}-${center[1]}-${validReports.length}`}
         center={center}
-        zoom={13}
+        zoom={16.5}
         scrollWheelZoom
         className="h-full w-full z-0"
       >

@@ -37,11 +37,11 @@ export function Upload() {
       const position = await getCurrentPosition();
 
       await createReport({
+        username: currentUser.username,
         image: selectedFile,
+        trashType: wasteType,
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
-        trashType: wasteType,
-        username: currentUser.username,
       });
 
       setSelectedFile(null);
@@ -148,7 +148,7 @@ export function Upload() {
                 color: 'var(--ivory)',
               }}
             >
-              {isSubmitting ? "Submitting..." : "Submit Report"}
+              {isSubmitting ? "Submitting..." : "I, " + currentUser.label +  ", pledge to throw this trash away."}
             </button>
           </div>
         </form>

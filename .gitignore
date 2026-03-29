@@ -19,6 +19,7 @@ __pycache__/
 node_modules/
 dist/
 build/
+*.db
 
 # Local environment files
 .env
