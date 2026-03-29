@@ -57,7 +57,7 @@ def add_report():
         return jsonify({"error": "latitude and longitude must be numbers"}), 400
 
     reported_at = get_current_unix_time()
-    database.add_report(username, img, t_type, latitude, longitude, reported_at)
+    database.add_report(username, img, t_type, latitude, longitude)
 
     return jsonify({"message": "Report added successfully", "reported_at": reported_at})
 
