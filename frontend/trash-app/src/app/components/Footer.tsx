@@ -1,14 +1,8 @@
-import { Banana, FileText, Wine, Wrench, Leaf, Trash2 } from "lucide-react";
+import { Banana, FileText, Wine, Wrench, Trash2 } from "lucide-react";
+import { FooterStats } from "../lib/reportAdapter";
 
 interface FooterProps {
-  stats: {
-    plastic: number;
-    paper: number;
-    glass: number;
-    metal: number;
-    organic: number;
-    regular: number;
-  };
+  stats: FooterStats;
 }
 
 export function Footer({ stats }: FooterProps) {

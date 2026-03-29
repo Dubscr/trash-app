@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import time
 
 DB_NAME = os.path.join(os.path.dirname(os.path.abspath(__file__)), "trash_app.db")
 
@@ -24,10 +25,11 @@ def initialize_db():
         conn.commit()
 
 
-def add_report(username, img, t_type, latitude, longitude, reported_at):
+def add_report(username, img, t_type, latitude, longitude):
     """Inserts a new row into the database."""
     with sqlite3.connect(DB_NAME) as conn:
         cursor = conn.cursor()
+        reported_at = int(time.time())
         query = """
             INSERT INTO trash_reports
             (username, image_path, trash_type, latitude, longitude, reported_at)
@@ -84,23 +86,3 @@ def get_reports_by_type(trash_type):
         """
         cursor.execute(query, (trash_type,))
         return cursor.fetchall()
-
-def get_daily_images(current_time):
-    daily_report_list = []
-    for report in get_all_reports():
-        if(report[6] >= current_time - 86400):
-            daily_report_list.append(report)
-    return daily_report_list
-
-def get_leaderboard():
-    all_reports = get_all_reports()
-    score_dict = {}
-    for report in all_reports:
-        if(score_dict.get(report[1])):
-            score_dict[report[1]] += 1
-        else:
-            score_dict[report[1]] = 1
-    for user, score in score_dict.items():
-        print(user, score)
-    sorted_dict = dict(sorted(score_dict.items(), key=lambda item: item[1]))
-    return sorted_dict

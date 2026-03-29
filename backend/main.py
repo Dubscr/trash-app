@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 import time
 import datetime
 import database
@@ -22,13 +22,33 @@ def get_reports():
 
 @app.route("/reports", methods=["POST"])
 def add_report():
-    data = request.json or {}
+    is_multipart_request = (request.content_type or "").startswith("multipart/form-data")
+
+    if is_multipart_request:
+        data = request.form
+        uploaded_image = request.files.get("image")
+
+        if uploaded_image is None or uploaded_image.filename == "":
+            return jsonify({"error": "image file is required"}), 400
+
+        try:
+            img = imagehandler.save_uploaded_file(uploaded_image)
+        except ValueError as error:
+            return jsonify({"error": str(error)}), 400
+    else:
+        data = request.get_json(silent=True) or {}
+        img = data.get("image_path")
 
     username = data.get("username")
-    img = data.get("image_path")
     t_type = data.get("trash_type")
     latitude = data.get("latitude")
     longitude = data.get("longitude")
+
+    if not username:
+        return jsonify({"error": "username is required"}), 400
+
+    if not t_type:
+        return jsonify({"error": "trash_type is required"}), 400
 
     try:
         latitude = float(latitude)
@@ -60,13 +80,20 @@ def reports_by_user(username):
 def reports_by_type(trash_type):
     return jsonify(database.get_reports_by_type(trash_type))
 
+
 @app.route("/reports/daily", methods=["GET"])
 def daily_reports():
     return jsonify(database.get_daily_images(get_current_unix_time()))
 
+
 @app.route("/reports/leaderboard", methods=["GET"])
 def get_leaderboard():
     return jsonify(database.get_leaderboard())
+
+
+@app.route("/images/<path:filename>", methods=["GET"])
+def get_uploaded_image(filename):
+    return send_from_directory(imagehandler.ensure_images_dir(), filename)
 
 ## Functions ##
 def test_upload():

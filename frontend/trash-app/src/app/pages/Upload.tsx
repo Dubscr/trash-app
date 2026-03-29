@@ -1,9 +1,17 @@
-import { useState } from "react";
+import { startTransition, useState } from "react";
 import { Upload as UploadIcon } from "lucide-react";
+import { useNavigate } from "react-router";
+import { useCurrentUser } from "../context/CurrentUserContext";
+import { createReport } from "../lib/api";
 
 export function Upload() {
+  const navigate = useNavigate();
+  const { currentUser } = useCurrentUser();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [wasteType, setWasteType] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const wasteTypes = ["Plastic", "Paper", "Glass", "Metal", "Organic", "Regular"];
 
@@ -13,11 +21,44 @@ export function Upload() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // Mock submission - in reality this would send to backend
-    alert(`Submitted: ${selectedFile?.name} as ${wasteType}`);
-  };
+
+    if (!selectedFile || !wasteType) {
+      setErrorMessage("Choose an image and waste type before submitting.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    try {
+      const position = await getCurrentPosition();
+
+      await createReport({
+        image: selectedFile,
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        trashType: wasteType,
+        username: currentUser.username,
+      });
+
+      setSelectedFile(null);
+      setWasteType("");
+      setSuccessMessage("Report submitted successfully.");
+
+      startTransition(() => {
+        navigate("/user");
+      });
+    } catch (submitError) {
+      setErrorMessage(
+        submitError instanceof Error ? submitError.message : "Unable to submit report.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <div className="flex-1 py-12 px-8" style={{ backgroundColor: 'var(--ivory)' }}>
@@ -25,6 +66,28 @@ export function Upload() {
         <h1 style={{ color: 'var(--fern)' }} className="mb-8 text-center">
           Upload Trash Report
         </h1>
+        <p className="mb-6 text-center" style={{ color: "var(--charcoal-brown)" }}>
+          Submitting as {currentUser.label}. Location will be pulled from your browser when you
+          submit.
+        </p>
+
+        {errorMessage ? (
+          <div
+            className="mb-6 rounded p-3 text-sm"
+            style={{ backgroundColor: "rgba(192, 133, 82, 0.12)", color: "var(--charcoal-brown)" }}
+          >
+            {errorMessage}
+          </div>
+        ) : null}
+
+        {successMessage ? (
+          <div
+            className="mb-6 rounded p-3 text-sm"
+            style={{ backgroundColor: "rgba(97, 139, 74, 0.12)", color: "var(--charcoal-brown)" }}
+          >
+            {successMessage}
+          </div>
+        ) : null}
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Image Upload */}
@@ -78,18 +141,35 @@ export function Upload() {
           <div className="flex justify-center pt-4">
             <button
               type="submit"
-              disabled={!selectedFile || !wasteType}
+              disabled={!selectedFile || !wasteType || isSubmitting}
               className="px-12 py-3 rounded transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
                 backgroundColor: 'var(--golden-chestnut)',
                 color: 'var(--ivory)',
               }}
             >
-              Submit Report
+              {isSubmitting ? "Submitting..." : "Submit Report"}
             </button>
           </div>
         </form>
       </div>
     </div>
   );
+}
+
+function getCurrentPosition() {
+  if (!navigator.geolocation) {
+    throw new Error("Geolocation is not supported in this browser.");
+  }
+
+  return new Promise<GeolocationPosition>((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(
+      resolve,
+      () => reject(new Error("Location access is required to submit a report.")),
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+      },
+    );
+  });
 }

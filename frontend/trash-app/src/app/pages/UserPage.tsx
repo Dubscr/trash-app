@@ -1,73 +1,47 @@
+import { useEffect, useState } from "react";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
-
-interface Submission {
-  id: string;
-  imageUrl: string;
-  trashType: string;
-  timestamp: string;
-  username: string;
-  latitude: number;
-  longitude: number;
-}
+import { useCurrentUser } from "../context/CurrentUserContext";
+import { fetchReportsByUser } from "../lib/api";
+import { Report, formatReportedAt } from "../lib/reportAdapter";
 
 export function UserPage() {
-  // Mock user submissions - ordered newest to oldest
-  const submissions: Submission[] = [
-    {
-      id: "1",
-      imageUrl: "https://images.unsplash.com/photo-1604187351574-c75ca79f5807",
-      trashType: "Plastic",
-      timestamp: "2026-03-29 14:30",
-      username: "EcoWarrior23",
-      latitude: 40.7128,
-      longitude: -74.0060,
-    },
-    {
-      id: "2",
-      imageUrl: "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b",
-      trashType: "Paper",
-      timestamp: "2026-03-29 12:15",
-      username: "EcoWarrior23",
-      latitude: 40.7129,
-      longitude: -74.0061,
-    },
-    {
-      id: "3",
-      imageUrl: "https://images.unsplash.com/photo-1607096849512-f8e3c1c23c7d",
-      trashType: "Glass",
-      timestamp: "2026-03-28 16:45",
-      username: "EcoWarrior23",
-      latitude: 40.7130,
-      longitude: -74.0062,
-    },
-    {
-      id: "4",
-      imageUrl: "https://images.unsplash.com/photo-1583976571872-a77b4d8c6f6f",
-      trashType: "Organic",
-      timestamp: "2026-03-28 10:20",
-      username: "EcoWarrior23",
-      latitude: 40.7131,
-      longitude: -74.0063,
-    },
-    {
-      id: "5",
-      imageUrl: "https://images.unsplash.com/photo-1609679669960-c1f9d1b0b5e6",
-      trashType: "Metal",
-      timestamp: "2026-03-27 15:00",
-      username: "EcoWarrior23",
-      latitude: 40.7132,
-      longitude: -74.0064,
-    },
-    {
-      id: "6",
-      imageUrl: "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b",
-      trashType: "Regular",
-      timestamp: "2026-03-27 09:30",
-      username: "EcoWarrior23",
-      latitude: 40.7133,
-      longitude: -74.0065,
-    },
-  ];
+  const { currentUser } = useCurrentUser();
+  const [submissions, setSubmissions] = useState<Report[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function loadUserReports() {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const nextSubmissions = await fetchReportsByUser(currentUser.username);
+
+        if (!isCancelled) {
+          setSubmissions(nextSubmissions);
+        }
+      } catch (loadError) {
+        if (!isCancelled) {
+          setError(
+            loadError instanceof Error ? loadError.message : "Unable to load user reports.",
+          );
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadUserReports();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [currentUser.username]);
 
   return (
     <div className="flex-1 overflow-y-auto py-8 px-8" style={{ backgroundColor: 'var(--ivory)' }}>
@@ -75,6 +49,28 @@ export function UserPage() {
         <h1 style={{ color: 'var(--fern)' }} className="mb-8 text-center">
           My Submissions
         </h1>
+        <p className="mb-6 text-center" style={{ color: "var(--charcoal-brown)" }}>
+          Viewing reports for {currentUser.label}
+        </p>
+
+        {error ? (
+          <div
+            className="mb-6 rounded p-3 text-sm"
+            style={{ backgroundColor: "rgba(192, 133, 82, 0.12)", color: "var(--charcoal-brown)" }}
+          >
+            {error}
+          </div>
+        ) : null}
+
+        {isLoading ? (
+          <div style={{ color: "var(--charcoal-brown)" }}>Loading submissions...</div>
+        ) : null}
+
+        {!isLoading && submissions.length === 0 ? (
+          <div style={{ color: "var(--charcoal-brown)" }}>
+            No submissions found for {currentUser.label} yet.
+          </div>
+        ) : null}
 
         <div className="space-y-6">
           {submissions.map((submission) => (
@@ -84,7 +80,7 @@ export function UserPage() {
               style={{ height: '300px' }}
             >
               <ImageWithFallback
-                src={submission.imageUrl}
+                src={submission.imageUrl || ""}
                 alt={`${submission.trashType} submission`}
                 className="w-full h-full object-cover"
               />
@@ -101,7 +97,7 @@ export function UserPage() {
                 className="absolute top-4 right-4 px-4 py-2 rounded"
                 style={{ backgroundColor: 'rgba(52, 54, 51, 0.8)', color: 'var(--ivory)' }}
               >
-                {submission.timestamp}
+                {formatReportedAt(submission.reportedAt)}
               </div>
             </div>
           ))}

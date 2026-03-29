@@ -1,45 +1,65 @@
+import { useEffect, useState } from "react";
 import { Footer } from "../components/Footer";
+import { ReportMap } from "../components/ReportMap";
+import { fetchDailyStats, fetchLeaderboard, fetchReports } from "../lib/api";
+import {
+  FooterStats,
+  LeaderboardEntry,
+  createEmptyFooterStats,
+} from "../lib/reportAdapter";
 
 export function Home() {
-  // Mock leaderboard data
-  const leaderboardData = [
-    { rank: 1, username: "EcoWarrior23", points: 1250 },
-    { rank: 2, username: "GreenHero", points: 1100 },
-    { rank: 3, username: "CleanStreets", points: 980 },
-    { rank: 4, username: "TrashHunter", points: 875 },
-    { rank: 5, username: "EarthSaver", points: 820 },
-    { rank: 6, username: "RecycleKing", points: 750 },
-    { rank: 7, username: "NatureLover", points: 690 },
-    { rank: 8, username: "GreenThumb", points: 625 },
-    { rank: 9, username: "CleanupCrew", points: 580 },
-    { rank: 10, username: "EcoFighter", points: 540 },
-  ];
+  const [reports, setReports] = useState<Awaited<ReturnType<typeof fetchReports>>>([]);
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
+  const [stats, setStats] = useState<FooterStats>(createEmptyFooterStats());
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock 24h stats
-  const stats = {
-    plastic: 142,
-    paper: 89,
-    glass: 56,
-    metal: 34,
-    organic: 78,
-    regular: 103,
-  };
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function loadHomePageData() {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const [nextReports, nextLeaderboard, nextStats] = await Promise.all([
+          fetchReports(),
+          fetchLeaderboard(),
+          fetchDailyStats(),
+        ]);
+
+        if (!isCancelled) {
+          setReports(nextReports);
+          setLeaderboardData(nextLeaderboard);
+          setStats(nextStats);
+        }
+      } catch (loadError) {
+        if (!isCancelled) {
+          setError(
+            loadError instanceof Error ? loadError.message : "Unable to load homepage data.",
+          );
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadHomePageData();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
 
   return (
     <div className="flex flex-col flex-1">
-      <div className="flex flex-1">
+      <div className="flex flex-1 min-h-[32rem]">
         {/* Map - 2/3 width */}
         <div className="w-2/3" style={{ backgroundColor: 'var(--lavender-grey)' }}>
-          <div className="h-full flex items-center justify-center p-8">
-            <div className="text-center">
-              <h2 style={{ color: 'var(--fern)' }} className="mb-4">
-                Interactive Map
-              </h2>
-              <p style={{ color: 'var(--charcoal-brown)' }}>
-                Map showing trash report locations with latitude/longitude markers
-              </p>
-            </div>
-          </div>
+          <ReportMap reports={reports} isLoading={isLoading} />
         </div>
 
         {/* Leaderboard - 1/3 width */}
@@ -48,7 +68,18 @@ export function Home() {
             <h2 style={{ color: 'var(--fern)' }} className="mb-6 text-center">
               Leaderboard
             </h2>
+            {error ? (
+              <div
+                className="mb-4 rounded p-3 text-sm"
+                style={{ backgroundColor: "rgba(192, 133, 82, 0.12)", color: "var(--charcoal-brown)" }}
+              >
+                {error}
+              </div>
+            ) : null}
             <div className="space-y-3">
+              {!isLoading && leaderboardData.length === 0 ? (
+                <div style={{ color: "var(--charcoal-brown)" }}>No reports yet.</div>
+              ) : null}
               {leaderboardData.map((user) => (
                 <div
                   key={user.rank}
