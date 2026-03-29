@@ -183,7 +183,14 @@ cython_debug/
 
 
 # React Git Ignore Stuff
-/frontend/node_modules
+# Node
+node_modules/
 
-/frontend/build
+# React frontend
+frontend/node_modules/
+frontend/trash-app/node_modules/
+
+# build outputs
+build/
+dist/
 

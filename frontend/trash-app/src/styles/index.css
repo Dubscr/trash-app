@@ -1,0 +1,17 @@
+@import './fonts.css';
+@import './tailwind.css';
+@import './theme.css';
+
+/* Fix for header navigation links - prevent browser default link states from overriding colors */
+.header-nav-link,
+.header-nav-link:link,
+.header-nav-link:visited,
+.header-nav-link:active,
+.header-nav-link:focus {
+  color: inherit !important;
+  text-decoration: none !important;
+}
+
+.header-nav-link:focus-visible {
+  outline: none;
+}
