@@ -1,6 +1,6 @@
 # trash-app
 
-## Demo
+## Demo Video (Click image)
 [![Trash App Demo](https://img.youtube.com/vi/1_41sv-VY3c/0.jpg)](https://www.youtube.com/watch?v=1_41sv-VY3c)
 
 ## Inspiration
