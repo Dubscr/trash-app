@@ -1,5 +1,8 @@
 # trash-app
+
+## Demo
 [![Trash App Demo](https://img.youtube.com/vi/1_41sv-VY3c/0.jpg)](https://www.youtube.com/watch?v=1_41sv-VY3c)
+
 ## Inspiration
 We love the natural beauty of the FGCU campus, from the glistening and shining ponds to the trails with gorgeous lush green scenery. While on the trail, we saw there were chip bags, cans of beer, and other trash. This inspires us to try and protect it, and that is where our idea comes in.
 
